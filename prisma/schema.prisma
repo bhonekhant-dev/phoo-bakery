@@ -10,32 +10,73 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = "postgresql://phoo:bakery@localhost:5432/phoo_bakery_db"
 }
 
-model Cake {
-  id          String   @id @default(uuid())
-  name        String
-  size        String
-  baseCost    Float
-  basePrice   Float
-  description String?
-
-  sales       SaleRecord[]
+enum CakeCategory {
+  VANILLA
+  CHOCOLATE
+  RED_VELVET
+  COCONUT
+  THAI_TEA
+  CHEESE_LAVA
+  RAINBOW_CREPE
 }
 
-model SaleRecord {
-  id            String   @id @default(uuid())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+// ကိတ်အရွယ်အစား
+enum CakeSize {
+  SIX_INCH
+  SEVEN_INCH
+  EIGHT_INCH
+  NINE_INCH
+  TEN_INCH
+    TWELVE_INCH
+    FOURTEEN_INCH
+}
 
-  cakeId        String
-  cake          Cake     @relation(fields: [cakeId], references: [id])
+// Order Status
+enum OrderStatus {
+  PENDING    // စောင့်ဆိုင်းနေဆဲ
+  CONFIRMED  // အတည်ပြုပြီး
+  PROCESSING // ပြုလုပ်နေဆဲ
+  DONE       // ပြီးစီး
+  CANCELLED  // ပယ်ဖျက်ထား
+}
 
-  costPrice     Float
-  sellingPrice  Float
-  profit        Float
-  imageURL      String?
-  extra         Float?
-  remark       String?
+// မှာယူမှု မှတ်တမ်း (Order Model)
+model Order {
+  id              String       @id @default(uuid())
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  // Customer Information
+  customerPhone   String
+  customerAddress String?
+  desiredDate     String       // YYYY-MM-DD format
+  desiredTime     String       // HH:MM format
+
+  // Cake Details
+  category        CakeCategory
+  size            CakeSize
+
+  // Extra Items (ဥပမာ: dolls, toppings, fruits)
+  extras          String[]     // String Array အဖြစ် သိမ်းဆည်းထားမည်
+
+  // Financial Details
+  basePrice       Int
+  extraFee        Int
+  totalAmount     Int
+
+  // Status and Management
+  status          OrderStatus  @default(PENDING)
+  updatedBy       String?      // နောက်ဆုံး Update လုပ်တဲ့ user ID
+  remarks         String?      @db.Text
+
+  // Optional Media (ပုံစံပုံ သို့မဟုတ် ငွေလွှဲပြေစာ base64 string များ)
+  cakeSketchImage String?      @db.Text
+  paymentScreenshot String?    @db.Text
+
+  // Indexing for faster lookups on phone number and status
+  @@index([customerPhone])
+  @@index([status])
 }
