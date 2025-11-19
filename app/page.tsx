@@ -123,10 +123,22 @@ const OrderForm = () => {
   );
 
   const handleSelectChange = (
-    e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>,
+    e: React.ChangeEvent<
+      HTMLSelectElement | HTMLInputElement | HTMLTextAreaElement
+    >,
   ) => {
-    const { name, value, type, checked } = e.target;
-    if (type === "checkbox" && name === "extras") {
+    const { name, value } = e.target;
+  
+    // 1. Check if it's an HTMLInputElement AND a checkbox
+    if (
+      e.target instanceof HTMLInputElement && // Type guard: narrows e.target to HTMLInputElement
+      e.target.type === "checkbox" &&      // Checks the type is 'checkbox'
+      name === "extras"                     // Your existing logic check
+    ) {
+      // TypeScript now knows e.target is an HTMLInputElement, and since the
+      // type is 'checkbox', it knows 'checked' exists.
+      const { checked } = e.target;
+  
       setForm((prev) => ({
         ...prev,
         extras: checked
@@ -135,7 +147,8 @@ const OrderForm = () => {
       }));
       return;
     }
-
+  
+    // Handle Select/Text/other Input changes
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 

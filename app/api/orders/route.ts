@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { CakeCategory, CakeSize, OrderStatus } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 import prisma from "@/lib/prisma";
 import {
@@ -34,26 +34,7 @@ const isExtra = (value: unknown): value is ExtraItemCode =>
 const isStatus = (value: unknown): value is OrderStatusCode =>
   typeof value === "string" && statusValues.includes(value as OrderStatusCode);
 
-const toOrderRecord = (order: {
-  id: string;
-  category: CakeCategory;
-  size: CakeSize;
-  customerPhone: string;
-  customerAddress: string | null;
-  desiredDate: string;
-  desiredTime: string;
-  extras: string[];
-  basePrice: number;
-  extraFee: number;
-  totalAmount: number;
-  status: OrderStatus;
-  remarks: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-  cakeSketchImage: string | null;
-  paymentScreenshot: string | null;
-  updatedBy: string | null;
-}): OrderRecord => ({
+const toOrderRecord = (order:any): OrderRecord => ({
   ...order,
   category: order.category as CakeCategoryCode,
   size: order.size as CakeSizeCode,
@@ -137,8 +118,8 @@ export async function POST(request: NextRequest) {
 
     const newOrder = await prisma.order.create({
       data: {
-        category: category as CakeCategory,
-        size: size as CakeSize,
+        category,
+        size,
         customerPhone,
         customerAddress: customerAddress?.toString() ?? null,
         desiredDate,
@@ -150,7 +131,7 @@ export async function POST(request: NextRequest) {
         cakeSketchImage: cakeSketchUrl,
         paymentScreenshot: paymentScreenshotUrl,
         remarks: remarks?.toString() ?? null,
-        status: OrderStatus.PENDING,
+        status: "PENDING",
       },
     });
 
@@ -182,7 +163,7 @@ export async function PUT(request: NextRequest) {
     const updatedOrder = await prisma.order.update({
       where: { id },
       data: {
-        status: status as OrderStatus,
+        status,
         updatedBy: updatedBy ?? null,
       },
     });
